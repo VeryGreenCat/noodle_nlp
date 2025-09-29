@@ -32,6 +32,7 @@ def remove_stopwords(tokens):
     "โคตร", "มาก", "เยอะ", "หน่อย", "หนัก", "เบา", "นิด", "น้อย", "แปป",]  # ใส่คำที่ไม่สำคัญสำหรับ Noodel
     return [t for t in tokens if t not in custom_stopwords]
 
+# for testing
 if __name__ == "__main__":
     X, y = load_data()
 
