@@ -4,6 +4,7 @@ from tensorflow.keras.models import load_model
 import pickle
 import numpy as np
 from preprocess import tokenize
+import json
 
 # ------------------------
 # Load model & tokenizer
@@ -78,11 +79,68 @@ def parse_to_json(normalized_text):
 
     return data
 
+
+options_map_reverse = {
+    "no_chili": "ไม่ใส่พริก",
+    "no_bean_sprout": "ไม่ใส่ถั่วงอก",
+    "no_peanut": "ไม่ใส่ถั่ว",
+    "no_vegetable": "ไม่ใส่ผัก"
+}
+
+def normalize_order(output_json_str):
+    """
+    รับ string JSON จากโมเดล แล้วเรียงเป็น: 
+    food + meat + style + option_text + quantity
+    """
+    # ลบ <start> หรือช่องว่างออกก่อน
+    clean_str = output_json_str.strip()
+    if clean_str.startswith("<start>"):
+        clean_str = clean_str.replace("<start>", "").strip()
+    if clean_str.startswith("<end>"):
+        clean_str = clean_str.replace("<end>", "").strip()
+
+    # แปลง string → dict
+    try:
+        order = json.loads(clean_str)
+    except json.JSONDecodeError:
+        # ถ้าเป็น list ก็ลองอีกแบบ
+        order = json.loads(clean_str.replace("'", "\""))
+
+    # ถ้ามีหลาย order (list)
+    if isinstance(order, list):
+        normalized_list = [format_one(o) for o in order]
+        return " / ".join(normalized_list)
+    else:
+        return format_one(order)
+
+def format_one(order_dict):
+    """จัดเรียง 1 order"""
+    food = order_dict.get("food", "").strip()
+    meat = order_dict.get("meat", "").strip()
+    style = order_dict.get("style", "").strip()
+    qty = order_dict.get("quantity", "")
+    opt_dict = order_dict.get("options", None)
+
+    option_text = ""
+    if isinstance(opt_dict, dict):
+        # แปลง key → คำเต็มภาษาไทย
+        for k, v in opt_dict.items():
+            if v and k in options_map_reverse:
+                option_text += options_map_reverse[k]
+
+    # ประกอบเป็นประโยคตามลำดับ
+    parts = [food, meat, style, option_text, str(qty)]
+    # เอาเฉพาะที่ไม่ว่าง
+    return "".join([p for p in parts if p])
+
+
 # ------------------------
 # Run example
 # ------------------------
 if __name__ == "__main__":
-    text = "หมีตกไม่งอกพริก"  # input slang text
-    normalized = predict(text)
-    print("Normalized string:", normalized)
-    print("Parsed JSON:", parse_to_json(normalized))
+    text = ["เล็กตกหมูไม่พริก2", "หมี่แห้งเนื้อไม่ถั่ว 1 "]
+    for t in text:
+        print("Input text:", t)
+        print("Predicted:", predict(t))
+        normalized = normalize_order(predict(t))
+        print("Normalized string:", normalized)

@@ -3,11 +3,11 @@ import numpy as np
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from model import Seq2Seq
-from preprocess import load_data, tokenize
+from preprocess import load_data, normalize_text, tokenize, remove_stopwords # get func from preprocess.py
 import pickle
 
 # 1. Load data
-X_texts, y_texts = load_data("data/orders.csv")
+X_texts, y_texts = load_data("data/noodle_data.csv")
 
 # 2. Tokenize input/output
 X_tokens = [" ".join(tokenize(x)) for x in X_texts]
