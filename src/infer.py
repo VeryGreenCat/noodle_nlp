@@ -164,20 +164,19 @@ def remove_stopword(text: str) -> str:
 # Run example
 # ------------------------
 if __name__ == "__main__":
-    # text = ["เล็กส้มยำไม่กัก2", "หมี่แห้งเนื้อไม่ถั่ว 1 "]
-    # for t in text:
-    #     print("Input text:", t)
-    #     print("Predicted:", predict(t))
-    #     normalized = normalize_order(predict(t))
-    #     print("Normalized string:", normalized)
     i = 1
-    while(True):
+    normalized_list = [] 
+    while True:
         str_input = input(f"เมนูที่ {i} : ")
         if str_input.lower() == "e":
             break
         else:
             pred = predict(remove_stopword(str_input))
-            print("Predicted JSON string:", pred)
             normalized = normalize_order(pred)
-            print("Normalized string:", normalized)
+            print("Raw order:", normalized)
+            normalized_list.append(normalized)  
             i += 1
+    # Print all normalized data after break
+    print("\nAll orders:")
+    for idx, item in enumerate(normalized_list, 1):
+        print(f"{idx}: {item}")
