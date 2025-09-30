@@ -3,7 +3,7 @@ from pythainlp.tokenize import word_tokenize
 import re
 
 # Load dataset
-def load_data(path="D:/Code/NLP/noodle_nlp/data/orders.csv"):
+def load_data(path):
     df = pd.read_csv(path)
     return df["input"].tolist(), df["output"].tolist()
 
@@ -15,7 +15,7 @@ def normalize_text(text):
 
 # 2. Tokenize Thai text
 def tokenize(text):
-    return word_tokenize(text, engine="newmm")
+    return ["<start>"] + word_tokenize(text, engine="newmm") + ["<end>"]
 
 # 3. Remove custom stopwords form chatGPT
 def remove_stopwords(tokens):
@@ -32,9 +32,17 @@ def remove_stopwords(tokens):
     "โคตร", "มาก", "เยอะ", "หน่อย", "หนัก", "เบา", "นิด", "น้อย", "แปป",]  # ใส่คำที่ไม่สำคัญสำหรับ Noodel
     return [t for t in tokens if t not in custom_stopwords]
 
+def preprocess_sentence(text, is_output=False):
+    text = normalize_text(text)                # normalize
+    tokens = tokenize(text)                    # tokenize (+ <start>/<end>)
+    tokens = remove_stopwords(tokens)          # remove stopwords
+    if not is_output:
+        return " ".join(tokens)                # input side
+    else:
+        return " ".join(tokens)                # output side, keep <start>/<end>
+
 # for testing
 if __name__ == "__main__":
-    X, y = load_data()
 
     text = "เอาเล็กส้มยำไม่กัก2ที่ครับบบบบ"
     print("Original:", text)
@@ -47,3 +55,6 @@ if __name__ == "__main__":
 
     clean_tokens = remove_stopwords(tokens)
     print("After Stopword Removal:", clean_tokens)
+
+    preproc = preprocess_sentence(text, is_output=False)
+    print("Preprocessed (input):", preproc)

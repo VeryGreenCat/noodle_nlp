@@ -1,3 +1,5 @@
 tensorflow
 pandas
 pythainlp
+scikit-learn
+numpy

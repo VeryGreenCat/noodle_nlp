@@ -3,29 +3,14 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.models import load_model
 import pickle
 import numpy as np
-from preprocess import tokenize
+from preprocess import tokenize, preprocess_sentence
 import json
-import re
-import deepcut
-
-custom_stopwords = [
-    "ครับ","คับ","คั้บ", "ค่ะ", "จ้า", "จ๊ะ", "จ๋า", "ฮะ", "ผม", "ดิฉัน", "ฉัน",
-    "นะ", "น่ะ", "เนอะ", "น้า", "นะคะ",
-    "ด้วย", "ที", "หน่อย", "จัดให้หน่อย",
-    "เอา", "ขอ", "จัด", "ทำ", "เอามา", "อยาก",
-    "แบบ", "ใส่ให้", "เอาเป็นว่า", "เอาสัก",
-    "ชาม", "ถ้วย", "ที่", "จาน",
-    "และ", "กับ", ",", "|", "หรือ",
-    "เอาด้วย", "อีก",
-    "เลย", "แหละ", "ล่ะ", "เท่านั้น", "ก็พอ", "ก็แล้วกัน",
-    "โคตร", "มาก", "เยอะ", "หน่อย", "หนัก", "เบา", "นิด", "น้อย", "แปป",
-]
 
 # ------------------------
 # Load model & tokenizer
 # ------------------------
-model = load_model("D:/Code/NLP/noodle_nlp/model1.h5", custom_objects={})
-tokenizer = pickle.load(open("D:/Code/NLP/noodle_nlp/tokenizer1.pkl", "rb"))
+model = load_model("model2.h5", custom_objects={})
+tokenizer = pickle.load(open("tokenizer2.pkl", "rb"))
 
 max_seq_len = model.input_shape[0][1]  # encoder input length
 
@@ -33,8 +18,15 @@ max_seq_len = model.input_shape[0][1]  # encoder input length
 # Decode greedy
 # ------------------------
 def predict(text):
+
+    clean_text = preprocess_sentence(text)
+    print("Cleaned text:", clean_text)
+
     # Encode input
-    seq = tokenizer.texts_to_sequences([" ".join(tokenize(text))])
+    seq = tokenizer.texts_to_sequences([clean_text])
+    print("Text to seq:", seq)
+
+    # Padding
     seq = pad_sequences(seq, maxlen=max_seq_len, padding="post")
 
     # Start decoding with <start> token
@@ -102,7 +94,7 @@ options_map_reverse = {
     "no_vegetable": "ไม่ใส่ผัก"
 }
 
-def normalize_order(output_json_str):
+def normalize_order(output_json_str): # json to string
     """
     รับ string JSON จากโมเดล แล้วเรียงเป็น: 
     food + meat + style + option_text + quantity
@@ -148,18 +140,6 @@ def format_one(order_dict):
     # เอาเฉพาะที่ไม่ว่าง
     return "".join([p for p in parts if p])
 
-
-def remove_stopword(text: str) -> str:
-    # ตัดคำด้วย deepcut
-    tokens = deepcut.tokenize(text)
-    
-    # ลบ stopwords
-    filtered_tokens = [t for t in tokens if t.strip() and t not in custom_stopwords]
-    
-    # รวมเป็น string
-    return "".join(filtered_tokens)
-
-
 # ------------------------
 # Run example
 # ------------------------
@@ -171,10 +151,12 @@ if __name__ == "__main__":
         if str_input.lower() == "e":
             break
         else:
-            pred = predict(remove_stopword(str_input))
+            pred = predict(str_input)
+            print("Raw order:", pred)
+            
             normalized = normalize_order(pred)
-            print("Raw order:", normalized)
-            normalized_list.append(normalized)  
+            # print("Raw order:", normalized)
+            # normalized_list.append(normalized)  
             i += 1
     # Print all normalized data after break
     print("\nAll orders:")
