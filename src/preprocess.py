@@ -3,7 +3,7 @@ from pythainlp.tokenize import word_tokenize
 import re
 
 # Load dataset
-def load_data(path="data/noodle_data.csv"):
+def load_data(path="D:/Code/NLP/noodle_nlp/data/orders.csv"):
     df = pd.read_csv(path)
     return df["input"].tolist(), df["output"].tolist()
 
@@ -36,7 +36,7 @@ def remove_stopwords(tokens):
 if __name__ == "__main__":
     X, y = load_data()
 
-    text = "เอาเล็สส้มยำไม่กัก2ที่ครับบบบบ"
+    text = "เอาเล็กส้มยำไม่กัก2ที่ครับบบบบ"
     print("Original:", text)
 
     norm = normalize_text(text)

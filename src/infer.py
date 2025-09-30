@@ -5,12 +5,27 @@ import pickle
 import numpy as np
 from preprocess import tokenize
 import json
+import re
+import deepcut
+
+custom_stopwords = [
+    "ครับ","คับ","คั้บ", "ค่ะ", "จ้า", "จ๊ะ", "จ๋า", "ฮะ", "ผม", "ดิฉัน", "ฉัน",
+    "นะ", "น่ะ", "เนอะ", "น้า", "นะคะ",
+    "ด้วย", "ที", "หน่อย", "จัดให้หน่อย",
+    "เอา", "ขอ", "จัด", "ทำ", "เอามา", "อยาก",
+    "แบบ", "ใส่ให้", "เอาเป็นว่า", "เอาสัก",
+    "ชาม", "ถ้วย", "ที่", "จาน",
+    "และ", "กับ", ",", "|", "หรือ",
+    "เอาด้วย", "อีก",
+    "เลย", "แหละ", "ล่ะ", "เท่านั้น", "ก็พอ", "ก็แล้วกัน",
+    "โคตร", "มาก", "เยอะ", "หน่อย", "หนัก", "เบา", "นิด", "น้อย", "แปป",
+]
 
 # ------------------------
 # Load model & tokenizer
 # ------------------------
-model = load_model("D:/Python/noodle_nlp/model.h5", custom_objects={})
-tokenizer = pickle.load(open("D:/Python/noodle_nlp/tokenizer.pkl", "rb"))
+model = load_model("D:/Code/NLP/noodle_nlp/model1.h5", custom_objects={})
+tokenizer = pickle.load(open("D:/Code/NLP/noodle_nlp/tokenizer1.pkl", "rb"))
 
 max_seq_len = model.input_shape[0][1]  # encoder input length
 
@@ -134,13 +149,35 @@ def format_one(order_dict):
     return "".join([p for p in parts if p])
 
 
+def remove_stopword(text: str) -> str:
+    # ตัดคำด้วย deepcut
+    tokens = deepcut.tokenize(text)
+    
+    # ลบ stopwords
+    filtered_tokens = [t for t in tokens if t.strip() and t not in custom_stopwords]
+    
+    # รวมเป็น string
+    return "".join(filtered_tokens)
+
+
 # ------------------------
 # Run example
 # ------------------------
 if __name__ == "__main__":
-    text = ["เล็กตกหมูไม่พริก2", "หมี่แห้งเนื้อไม่ถั่ว 1 "]
-    for t in text:
-        print("Input text:", t)
-        print("Predicted:", predict(t))
-        normalized = normalize_order(predict(t))
-        print("Normalized string:", normalized)
+    # text = ["เล็กส้มยำไม่กัก2", "หมี่แห้งเนื้อไม่ถั่ว 1 "]
+    # for t in text:
+    #     print("Input text:", t)
+    #     print("Predicted:", predict(t))
+    #     normalized = normalize_order(predict(t))
+    #     print("Normalized string:", normalized)
+    i = 1
+    while(True):
+        str_input = input(f"เมนูที่ {i} : ")
+        if str_input.lower() == "e":
+            break
+        else:
+            pred = predict(remove_stopword(str_input))
+            print("Predicted JSON string:", pred)
+            normalized = normalize_order(pred)
+            print("Normalized string:", normalized)
+            i += 1
