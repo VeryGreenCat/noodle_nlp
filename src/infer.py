@@ -9,8 +9,8 @@ import json
 # ------------------------
 # Load model & tokenizer
 # ------------------------
-model = load_model("model2.h5", custom_objects={})
-tokenizer = pickle.load(open("tokenizer2.pkl", "rb"))
+model = load_model("../model1.h5", custom_objects={})
+tokenizer = pickle.load(open("../tokenizer1.pkl", "rb"))
 
 max_seq_len = model.input_shape[0][1]  # encoder input length
 
@@ -155,8 +155,8 @@ if __name__ == "__main__":
             print("Raw order:", pred)
             
             normalized = normalize_order(pred)
-            # print("Raw order:", normalized)
-            # normalized_list.append(normalized)  
+            print("Raw order:", normalized)
+            normalized_list.append(normalized)  
             i += 1
     # Print all normalized data after break
     print("\nAll orders:")
