@@ -4,30 +4,49 @@ import os
 import json
 import itertools
 
+random.seed(42)
 os.makedirs("../data", exist_ok=True)
 
 # ----- Config -----
-noodles = ["เส้นเล็ก", "เส้นใหญ่", "บะหมี่", "วุ้นเส้น", "หมี่ขาว"]
+noodles = ["เส้นเล็ก", "เส้นใหญ่", "บะหมี่เหลือง", "วุ้นเส้น", "หมี่ขาว","มาม่า","เกาเหลา"]
 styles = ["น้ำตก", "น้ำใส", "แห้ง", "ต้มยำ", "เย็นตาโฟ"]
-meats = ["หมู", "เนื้อ"]
+meats = ["หมูชิ้น","หมูตุ๋น","เนื้อสด","เนื้อตุ๋น","เนื้อเปื่อย","ปลา"]
 options_dict = {
     "ไม่พริก": {"no_chili": True},
     "ไม่งอก": {"no_bean_sprout": True},
     "ไม่ถั่ว": {"no_peanut": True},
     "ไม่ผัก": {"no_vegetable": True},
+    "ไม่กระเทียมเจียว": {"no_garlic": True},
+    "ไม่ตับ": {"no_liver": True},
+    "ไม่เครื่องใน": {"no_offal": True},
 }
 quantities = list(range(1, 11))  # 1 to 10
 
 abbr_map = {
     "เส้นเล็ก": "เล็ก",
     "เส้นใหญ่": "ใหญ่",
+    "บะหมี่เหลือง": "บะหมี่",
+    "เกาเหลา": "เหลา",
     "วุ้นเส้น": "วุ้น",
     "หมี่ขาว": "หมี่",
     "น้ำตก": "ตก",
     "น้ำใส": "ใส",
+    "ต้มยำ": "ยำ",
+    "เย็นตาโฟ": "โฟ",
+    "หมูชิ้น": "หมู",
+    "เนื้อสด": "สด",
+    "เนื้อเปื่อย": "เปื่อย",
+    
 }
 
 TYPO_PER_VARIANT = 3
+
+
+def limited_permutations(tokens, limit=8):
+    perms = list(itertools.permutations(tokens))
+    if len(perms) > limit:
+        perms = random.sample(perms, limit)
+    return perms
 
 
 def build_json(food, style=None, qty=1, opts=None, meat=None):
@@ -95,18 +114,18 @@ def generate_all(keep_abbr=True):
                         # output json
                         output_json = build_json(noodle, style, qty, options_dict.get(opt_key), meat)
 
-                        # ✅ สลับตำแหน่งทุกแบบ (permutations)
+                        # สลับตำแหน่งทุกแบบ (permutations)
                         for parts, parts_abbr in [(parts_full, parts_abbr)]:
-                            for perm in itertools.permutations(parts):
+                            for perm in limited_permutations(parts, limit=8):
                                 normal = "".join(perm)
                                 rows.append((normal, json.dumps(output_json, ensure_ascii=False)))
 
                             if keep_abbr:
-                                for perm in itertools.permutations(parts_abbr):
+                                for perm in limited_permutations(parts_abbr, limit=8):
                                     abbr = "".join(perm)
                                     rows.append((abbr, json.dumps(output_json, ensure_ascii=False)))
-
-                        # ✅ เพิ่ม typo
+                                    
+                        # เพิ่ม typo หรือคำผิด
                         for base in [ "".join(parts_full), "".join(parts_abbr) if keep_abbr else None]:
                             if base:
                                 typos = generate_k_typos(base, TYPO_PER_VARIANT)
